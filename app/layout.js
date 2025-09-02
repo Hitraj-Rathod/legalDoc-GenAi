@@ -26,7 +26,7 @@ export default function RootLayout({ children }) {
       >
         <Navabar/>
         {children}
-        <Footer/>
+       
       </body>
       
     </html>
