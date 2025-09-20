@@ -22,7 +22,7 @@ const Navbar = () => {
                         <Link className="rounded-lg px-2 py-1 text-l font-medium text-gray-900 transition-all duration-200 hover:bg-[#1C352D] hover:text-gray-100"
                             href="/usecase">Use Case</Link>
                         <Link className="rounded-lg px-2 py-1 text-l font-medium text-gray-900 transition-all duration-200 hover:bg-[#1C352D] hover:text-gray-100"
-                            href="/scan">Scan</Link>
+                            href="/analyze">Analyze</Link>
                         <Link className="rounded-lg px-2 py-1 text-l font-medium text-gray-900 transition-all duration-200 hover:bg-[#1C352D] hover:text-gray-100"
                             href="/agents">Agents</Link>
                     </div>
