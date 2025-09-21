@@ -7,21 +7,19 @@ import docx
 import PyPDF2
 from dotenv import load_dotenv
 
-# Load environment variables from .env file
 load_dotenv()
 
 app = Flask(__name__)
-# Allow requests from your Next.js app's origin
+
 CORS(app, resources={r"/api/*": {"origins": "http://localhost:3000"}})
 
-# --- FIX 1: CORRECT AND SECURE API KEY HANDLING ---
-# This correctly and safely loads your key from the .env file.
-# Do NOT paste your key directly here.
 try:
+# Safely initialize the OpenAI client using the key from your .env file
     client = OpenAI(api_key=os.environ.get("OPENAI_API_KEY"))
 except Exception as e:
     print(f"Error initializing OpenAI client: {e}")
     client = None
+
 
 def extract_text_from_docx(file_stream):
     """Extracts text from a .docx file stream."""
@@ -40,6 +38,7 @@ def extract_text_from_pdf(file_stream):
 
 @app.route('/api/analyze', methods=['POST'])
 def analyze_document():
+    """Endpoint for handling legal document uploads and analysis."""
     if not client:
         return jsonify({"error": "OpenAI client not initialized. Check your API key in the .env file."}), 500
 
@@ -53,24 +52,18 @@ def analyze_document():
     text = ""
     try:
         file_stream = io.BytesIO(file.read())
-        
         if file.filename.endswith('.docx'):
             text = extract_text_from_docx(file_stream)
         elif file.filename.endswith('.pdf'):
             text = extract_text_from_pdf(file_stream)
         else:
             return jsonify({"error": "Unsupported file type"}), 400
-
         if not text.strip():
              return jsonify({"error": "Could not extract text from the document. The file might be empty or unreadable."}), 400
-
     except Exception as e:
         return jsonify({"error": f"Error processing file: {str(e)}"}), 500
     
     try:
-        # --- FIX 2: IMPROVED PROMPT FOR RELIABLE JSON ---
-        # This new prompt explicitly tells the AI the exact nested structure
-        # that the frontend expects, preventing crashes.
         system_prompt = """
         You are a highly skilled AI legal assistant. Your task is to analyze a legal document and provide a clear, concise, and structured analysis.
         The user is not a lawyer, so avoid overly technical jargon.
@@ -91,7 +84,6 @@ def analyze_document():
         }
         The 'rating' in 'risk_analysis' must be one of 'Low', 'Medium', or 'High'.
         """
-        
         response = client.chat.completions.create(
             model="gpt-4o-mini",
             response_format={"type": "json_object"},
@@ -100,14 +92,45 @@ def analyze_document():
                 {"role": "user", "content": f"Please analyze the following legal document text:\n\n{text}"}
             ]
         )
-        
         analysis_result = response.choices[0].message.content
         return analysis_result, 200, {'Content-Type': 'application/json'}
-
     except Exception as e:
-        # This will now give a more detailed error if the OpenAI call fails
-        print(f"Error during OpenAI API call: {e}") 
+        print(f"Error during OpenAI API call for analysis: {e}")
         return jsonify({"error": f"Error during OpenAI API call: {str(e)}"}), 500
+    
+@app.route('/api/chat', methods=['POST'])
+def chat_with_ai():
+    """Endpoint for handling chatbot conversations."""
+    if not client:
+        return jsonify({"error": "OpenAI client not initialized."}), 500
+
+    data = request.get_json()
+    if not data or 'messages' not in data:
+        return jsonify({"error": "Invalid request. 'messages' are required."}), 400
+
+    messages = data['messages']
+
+    try:
+        system_prompt = """
+        You are 'Lexi', a helpful and friendly AI guidance counselor specializing in general legal information.
+        Your goal is to provide clear, simple explanations about legal topics and processes.
+        - Be supportive and encouraging.
+        - Break down complex topics into easy-to-understand points.
+        - IMPORTANT: You are not a lawyer and you MUST NOT give legal advice. 
+        - Always include a disclaimer in your first message, such as: "Please remember, I am an AI assistant and not a lawyer. This information is for educational purposes only and not a substitute for professional legal advice."
+        - Keep your answers conversational and concise.
+        """
+        chat_messages = [{"role": "system", "content": system_prompt}] + messages
+        response = client.chat.completions.create(
+            model="gpt-4o-mini",
+            messages=chat_messages
+        )
+        reply = response.choices[0].message.content
+        return jsonify({"reply": reply})
+    except Exception as e:
+        print(f"Error during OpenAI API call for chat: {e}")
+        return jsonify({"error": f"An error occurred while talking to the AI: {str(e)}"}), 500
 
 if __name__ == '__main__':
     app.run(debug=True, port=5001)
+

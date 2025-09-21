@@ -16,7 +16,7 @@ const Navbar = () => {
                             <span className=" text-xl font-bold text-gray-900">LegalDoc</span>
                         </Link>
                     </div>
-                    {/* Desktop Links */}
+            
                     <div className="hidden md:flex md:items-center md:justify-center md:gap-5">
 
                         <Link className="rounded-lg px-2 py-1 text-l font-medium text-gray-900 transition-all duration-200 hover:bg-[#1C352D] hover:text-gray-100"
@@ -26,7 +26,7 @@ const Navbar = () => {
                         <Link className="rounded-lg px-2 py-1 text-l font-medium text-gray-900 transition-all duration-200 hover:bg-[#1C352D] hover:text-gray-100"
                             href="/agents">Agents</Link>
                     </div>
-                    {/* Hamburger Icon */}
+           
                     <div className="md:hidden">
                         <button
                             onClick={() => setMenuOpen(!menuOpen)}
@@ -42,7 +42,7 @@ const Navbar = () => {
                             </svg>
                         </button>
                     </div>
-                    {/* Auth Buttons */}
+         
                     <div className="hidden md:flex items-center justify-end gap-3">
                         
                         <Link className="inline-flex items-center justify-center rounded-xl bg-[#234439] px-3 py-2 text-sm font-semibold text-white shadow-sm transition-all duration-150 hover:bg-[#172c25] focus:outline-none focus:ring-2 focus:ring-gray-500 focus:ring-offset-2"
